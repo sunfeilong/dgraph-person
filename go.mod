@@ -1,4 +1,4 @@
-module dgraph
+module github.com/xiaotian/dgraph-person
 
 go 1.13
 
