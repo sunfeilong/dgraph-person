@@ -3,6 +3,7 @@ package client
 import (
     "context"
     "encoding/json"
+    "fmt"
     "github.com/dgraph-io/dgo/v200"
     "github.com/dgraph-io/dgo/v200/protos/api"
     "github.com/xiaotian/dgraph-person/pkg/data"
@@ -71,15 +72,30 @@ func (c *Client) AddPerson(name string, phone string) (bool, error) {
     return true, nil
 }
 
-func getByUid(uid string, result *interface{}) {
-
+func (c *Client) GetPersonByUid(uid string) *data.Person {
+    txn := c.dg.NewTxn()
+    ctx := context.Background()
+    queryStr := strings.Replace(data.QueryByUid, "$phone", uid, 1)
+    res, err := txn.Query(ctx, queryStr)
+    if err != nil {
+        panic(err)
+    }
+    decode := DecodePerson{}
+    err = json.Unmarshal(res.Json, &decode)
+    if len(decode.P) == 0 {
+        return nil
+    } else if len(decode.P) == 1 {
+        return &decode.P[0]
+    } else {
+        panic("GetPersonByUid 数据存在错误")
+    }
 }
 
 func (c *Client) GetPersonByEdge(edgeName string, value string) *data.Person {
     txn := c.dg.NewTxn()
     ctx := context.Background()
-    q := strings.Replace(strings.Replace(data.QueryByEdge, "$edgeName", edgeName, 1), "$phone", value, 1)
-    res, err := txn.Query(ctx, q)
+    queryStr := strings.Replace(strings.Replace(data.QueryByEdge, "$edgeName", edgeName, 1), "$phone", value, 1)
+    res, err := txn.Query(ctx, queryStr)
     if err != nil {
         panic(err)
     }
@@ -94,10 +110,32 @@ func (c *Client) GetPersonByEdge(edgeName string, value string) *data.Person {
     }
 }
 
-func deleteByUid(uid string) bool {
+func (c *Client) DeleteByUid(uidList ...string) bool {
+    if len(uidList) == 0 {
+        return true
+    }
+
+    mutations := make([]string, len(uidList))
+    for i, uid := range uidList {
+        mutations[i] = strings.Replace(data.DeleteNode, "$uid", uid, 1)
+    }
+    deleteMutationList := strings.Join(mutations, "\n")
+
+    fmt.Println(deleteMutationList)
+
+    mu := &api.Mutation{
+        CommitNow: true,
+        DelNquads: []byte(deleteMutationList),
+    }
+
+    txn := c.dg.NewTxn()
+    ctx := context.Background()
+    mutate, err := txn.Mutate(ctx, mu)
+    if nil != err {
+        panic(err)
+    }
+    if mutate.Json == nil {
+        return true
+    }
     return false
-}
-
-func deleteEdge(edgeName string, value string, result *interface{}) {
-
 }

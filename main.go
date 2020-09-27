@@ -31,8 +31,9 @@ func main() {
     client := client.Client{}
     client.Connect("10.0.8.36", 19080)
     initSchema(client)
-    addPerson(client, "孙飞龙", "15210012054")
-
+    //addPerson(client, "孙飞龙", "15210012054")
+    person := client.GetPersonByEdge("phone", "15210012050")
+    client.DeleteByUid(person.Uid)
 }
 
 func initSchema(c client.Client) {
