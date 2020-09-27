@@ -6,6 +6,24 @@ import (
     "testing"
 )
 
+func TestFormat(t *testing.T) {
+    logger := New()
+
+    keyValues := make(map[string]string)
+    keyValues["name"] = "zhangsan"
+    keyValues["age"] = "24"
+
+    //字符串匹拼接
+    //INFO	d_log/logger_test.go:17	Info name name map map[age:24 name:zhangsan]
+    logger.Info("Info ", "name ", "ZS ", "map ", keyValues)
+    //JSON 格式
+    //Infow 	{"name ": "ZS ", "map ": {"age":"24","name":"zhangsan"}}
+    logger.Infow("Infow ", "name ", "ZS ", "map ", keyValues)
+    //模板填充
+    //Infow name: ZS , map: map[age:24 name:zhangsan]
+    logger.Infof("Infof name: %s, map: %s", "ZS ", keyValues)
+}
+
 func TestName(t *testing.T) {
     logger := New()
 
