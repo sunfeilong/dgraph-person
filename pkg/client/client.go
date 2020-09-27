@@ -3,6 +3,7 @@ package client
 import (
     "context"
     "encoding/json"
+    "fmt"
     "github.com/dgraph-io/dgo/v200"
     "github.com/dgraph-io/dgo/v200/protos/api"
     "github.com/xiaotian/dgraph-person/pkg/d_log"
@@ -27,7 +28,7 @@ func (c *Client) Connect(ip string, port int) {
     c.ip = ip
     c.port = port
     logger.Infow("connect to DGraph server start", "ip", ip, "port", port)
-    dial, err := grpc.Dial(ip+":"+string(port), grpc.WithInsecure())
+    dial, err := grpc.Dial(fmt.Sprintf("%s:%d", ip, port), grpc.WithInsecure())
     if err != nil {
         logger.Panicw("connect to DGraph server error", "ip", ip, "port", port, "err", err.Error())
     }
@@ -75,7 +76,6 @@ func (c *Client) AddPerson(name string, phone string) (bool, error) {
     ctx := context.Background()
     txn := c.dg.NewTxn()
     response, err := txn.Mutate(ctx, mu)
-    defer txn.Discard(ctx)
 
     if err != nil {
         logger.Errorw("AddPerson mutation error", "name", name, "phone", phone, "err", err)
@@ -95,7 +95,6 @@ func (c *Client) GetPersonByUid(uid string) *data.Person {
 
     txn := c.dg.NewTxn()
     ctx := context.Background()
-    defer txn.Discard(ctx)
     queryStr := strings.Replace(data.QueryByUid, "$phone", uid, 1)
     logger.Infow("GetPersonByUid start", "uid", uid, "queryStr", queryStr)
 
@@ -124,7 +123,6 @@ func (c *Client) GetPersonByEdge(edgeName string, value string) *data.Person {
 
     txn := c.dg.NewTxn()
     ctx := context.Background()
-    defer txn.Discard(ctx)
 
     queryStr := strings.Replace(strings.Replace(data.QueryByEdge, "$edgeName", edgeName, 1), "$phone", value, 1)
     logger.Infow("GetPersonByEdge queryStr", "edgeName", edgeName, "value", value, "queryStr", queryStr)
