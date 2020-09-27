@@ -75,6 +75,7 @@ func (c *Client) AddPerson(name string, phone string) (bool, error) {
 
     ctx := context.Background()
     txn := c.dg.NewTxn()
+    defer txn.Discard(ctx)
     response, err := txn.Mutate(ctx, mu)
 
     if err != nil {
@@ -95,6 +96,7 @@ func (c *Client) GetPersonByUid(uid string) *data.Person {
 
     txn := c.dg.NewTxn()
     ctx := context.Background()
+    defer txn.Discard(ctx)
     queryStr := strings.Replace(data.QueryByUid, "$phone", uid, 1)
     logger.Infow("GetPersonByUid start", "uid", uid, "queryStr", queryStr)
 
@@ -123,7 +125,7 @@ func (c *Client) GetPersonByEdge(edgeName string, value string) *data.Person {
 
     txn := c.dg.NewTxn()
     ctx := context.Background()
-
+    defer txn.Discard(ctx)
     queryStr := strings.Replace(strings.Replace(data.QueryByEdge, "$edgeName", edgeName, 1), "$phone", value, 1)
     logger.Infow("GetPersonByEdge queryStr", "edgeName", edgeName, "value", value, "queryStr", queryStr)
 
@@ -163,6 +165,7 @@ func (c *Client) DeleteByUid(uidList ...string) bool {
     }
     txn := c.dg.NewTxn()
     ctx := context.Background()
+    defer txn.Discard(ctx)
     mutate, err := txn.Mutate(ctx, mu)
     if nil != err {
         logger.Panicw("DeleteByUid mutation error", "err", err)

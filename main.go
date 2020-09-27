@@ -32,7 +32,7 @@ func main() {
     length := len(idNameAndPhoneList)
     logger.Infow("read user data from file ", "file", userFile, "length", length)
     for i, v := range idNameAndPhoneList {
-        tools.ShowProgress("AddPersonToData", i, length)
+        tools.ShowProgress("AddPersonToData", i+1, length)
         addPerson(c, v.Name, v.Phone)
     }
     logger.Info("DGraph Person server end")
