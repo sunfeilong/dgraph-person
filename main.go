@@ -2,6 +2,7 @@ package main
 
 import (
     "github.com/xiaotian/dgraph-person/pkg/client"
+    "github.com/xiaotian/dgraph-person/pkg/d_log"
     "github.com/xiaotian/dgraph-person/pkg/data"
     "regexp"
     "strings"
@@ -9,31 +10,17 @@ import (
 
 const pattern string = "\\d+"
 
-type Friend struct {
-    FriendUserId string         `json:"userId"`
-    Friends      []NameAndPhone `json:"friends"`
-}
-
-type NameAndPhone struct {
-    Name  string `json:"name"`
-    Phone string `json:"phone"`
-}
-
-type User struct {
-    Uid   string   `json:"uid,omitempty"`
-    Name  string   `json:"name,omitempty"`
-    Phone string   `json:"phone,omitempty"`
-    DType []string `json:"dgraph.type,omitempty"`
-}
+var logger = d_log.New()
 
 func main() {
-
-    client := client.Client{}
-    client.Connect("10.0.8.36", 19080)
-    initSchema(client)
-    //addPerson(client, "孙飞龙", "15210012054")
-    person := client.GetPersonByEdge("phone", "15210012050")
-    client.DeleteByUid(person.Uid)
+    logger.Info("DGraph Person server start")
+    c := client.Client{}
+    c.Connect("10.0.8.36", 19080)
+    initSchema(c)
+    addPerson(c, "公安局", "110")
+    person := c.GetPersonByEdge("phone", "15210012050")
+    c.DeleteByUid(person.Uid)
+    logger.Info("DGraph Person server end")
 }
 
 func initSchema(c client.Client) {
