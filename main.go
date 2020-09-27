@@ -6,11 +6,8 @@ import (
     "github.com/xiaotian/dgraph-person/pkg/data"
     "github.com/xiaotian/dgraph-person/pkg/reader"
     "github.com/xiaotian/dgraph-person/pkg/tools"
-    "regexp"
     "strings"
 )
-
-const pattern string = "\\d+"
 
 var logger = d_log.New()
 
@@ -50,8 +47,7 @@ func addPerson(c client.Client, name string, phone string) {
         logger.Errorw("addPerson name is blank", "name", name)
         return
     }
-    ok, err := regexp.Match(pattern, []byte(phone))
-    if err != nil && !ok {
+    if !tools.IsNumber(phone) {
         logger.Panicw("addPerson phone is not a number", "phone", phone)
         return
     }
