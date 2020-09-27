@@ -30,7 +30,7 @@ func main() {
     logger.Infow("read user data from file ", "file", userFile, "length", length)
     for i, v := range idNameAndPhoneList {
         tools.ShowProgress("AddPersonToData", i+1, length)
-        addPerson(c, v.Name, v.Phone)
+        deletePerson(c, v.Phone)
     }
     logger.Info("DGraph Person server end")
 }
@@ -63,5 +63,22 @@ func addPerson(c client.Client, name string, phone string) {
     }
     if !b {
         logger.Panicw("addPerson error", err, err)
+    }
+}
+
+func deletePerson(c client.Client, phone string) {
+    if len(strings.TrimSpace(phone)) == 0 {
+        logger.Errorw("deletePerson phone is blank", "phone", phone)
+        return
+    }
+
+    person := c.GetPersonByEdge("phone", phone)
+    if person == nil {
+        logger.Infow("deletePerson Person Not Exists ", "phone", phone)
+        return
+    }
+    b := c.DeleteByUid(person.Uid)
+    if !b {
+        logger.Panicw("deletePerson error")
     }
 }
