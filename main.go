@@ -28,10 +28,13 @@ func main() {
     idNameAndPhoneList := jsonPersonReader.ReadFromFile(userFile)
     length := len(idNameAndPhoneList)
     logger.Infow("read user data from file ", "file", userFile, "length", length)
-    for i, v := range idNameAndPhoneList {
-        tools.ShowProgress("AddPersonToData", i+1, length)
-        deletePerson(c, v.Phone)
-    }
+    deletePersonList(c, getPhoneList(idNameAndPhoneList))
+
+    //for i, v := range idNameAndPhoneList {
+    //    tools.ShowProgress("AddPersonToData", i+1, length)
+    //
+    //    deletePerson(c, v.Phone)
+    //}
     logger.Info("DGraph Person server end")
 }
 
@@ -77,8 +80,43 @@ func deletePerson(c client.Client, phone string) {
         logger.Infow("deletePerson Person Not Exists ", "phone", phone)
         return
     }
-    b := c.DeleteByUid(person.Uid)
+    b := c.DeleteByUid([]string{person.Uid})
     if !b {
         logger.Panicw("deletePerson error")
     }
+}
+
+func deletePersonList(c client.Client, phoneList []string) {
+    if len(phoneList) == 0 {
+        logger.Errorw("deletePerson phoneList is blank", "phoneList", phoneList)
+        return
+    }
+
+    uidList := make([]string, len(phoneList))
+    for i, v := range phoneList {
+        person := c.GetPersonByEdge("phone", v)
+        if person == nil {
+            continue
+        }
+        uidList[i] = person.Uid
+    }
+
+    b := c.DeleteByUid(uidList)
+    if !b {
+        logger.Panicw("deletePerson error")
+    }
+}
+
+func getPhoneList(idNamePhone []reader.IdNameAndPhone) []string {
+    if len(idNamePhone) == 0 {
+        return make([]string, 0)
+    }
+
+    phones := make([]string, len(idNamePhone))
+
+    for i, v := range idNamePhone {
+        phones[i] = v.Phone
+    }
+
+    return phones
 }

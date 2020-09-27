@@ -144,7 +144,7 @@ func (c *Client) GetPersonByEdge(edgeName string, value string) *data.Person {
     }
 }
 
-func (c *Client) DeleteByUid(uidList ...string) bool {
+func (c *Client) DeleteByUid(uidList []string) bool {
     logger.Infow("DeleteByUid start", "uidList", uidList)
 
     if len(uidList) == 0 {
