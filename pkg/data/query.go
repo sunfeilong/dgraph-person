@@ -23,3 +23,5 @@ const QueryByUid string = `
   }`
 
 const DeleteNode string = `<$uid> * * .`
+
+const AddFriendRelation string = `<$uidA> <friend> <$uidB> .`

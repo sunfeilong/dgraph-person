@@ -1,5 +1,7 @@
 package reader
 
 type PersonReader interface {
-    ReadFromFile(filePath string) *[]IdNameAndPhone
+    ReadPersonFromFile(filePath string) []IdNameAndPhone
+
+    ReadFriendFromFile(filePath string) []PhoneNameAndPhone
 }

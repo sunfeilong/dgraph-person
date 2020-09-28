@@ -13,32 +13,58 @@ var logger = d_log.New()
 
 func main() {
     userFile := "d://user.json"
+    friendFile := "d://friends.json"
     ip := "10.0.8.36"
     port := 19080
 
-    logger.Info("DGraph Person server start", "ip", ip, "port", port, "userFile", userFile)
+    logger.Info("DGraph Person server start", "ip", ip, "port", port, "userFile", userFile, "friendFile", friendFile)
     c := client.Client{}
     c.Connect(ip, port)
-
     logger.Infow("init schema")
-    initSchema(c)
+    updateSchema(c)
+    //loadPerson(c, userFile)
+    loadFriend(c, friendFile)
 
-    logger.Infow("read user data from file ", "file", userFile)
-    jsonPersonReader := reader.JsonPersonReader{}
-    idNameAndPhoneList := jsonPersonReader.ReadFromFile(userFile)
-    length := len(idNameAndPhoneList)
-    logger.Infow("read user data from file ", "file", userFile, "length", length)
-    deletePersonList(c, getPhoneList(idNameAndPhoneList))
-
-    //for i, v := range idNameAndPhoneList {
-    //    tools.ShowProgress("AddPersonToData", i+1, length)
-    //
-    //    deletePerson(c, v.Phone)
-    //}
     logger.Info("DGraph Person server end")
 }
 
-func initSchema(c client.Client) {
+func loadFriend(c client.Client, friendFile string) {
+    logger.Infow("loadFriend load data file ", "file", friendFile)
+    jsonPersonReader := reader.JsonPersonReader{}
+    phoneNameAndPhoneList := jsonPersonReader.ReadFriendFromFile(friendFile)
+    length := len(phoneNameAndPhoneList)
+    logger.Infow("loadFriend load data file ", "file", friendFile, "length", length)
+    for i, v := range phoneNameAndPhoneList {
+        addPerson(c, v.Name, v.Phone)
+        friend := c.GetPersonByEdge("phone", v.Phone)
+        if nil == friend {
+            logger.Infow("loadFriend get friend from db, friend not exists ", "file", friendFile, "length", length)
+            continue
+        }
+        person := c.GetPersonByEdge("phone", v.UserPhone)
+        if nil == person {
+            logger.Infow("loadFriend from file get person from db, person not exists ", "file", friendFile, "length", length)
+            continue
+        }
+        //add relation
+        c.AddFriend(friend.Uid, person.Uid)
+        tools.ShowProgress("LoadFriend", i+1, length)
+    }
+}
+
+func loadPerson(c client.Client, userFile string) {
+    logger.Infow("read user data from file ", "file", userFile)
+    jsonPersonReader := reader.JsonPersonReader{}
+    idNameAndPhoneList := jsonPersonReader.ReadPersonFromFile(userFile)
+    length := len(idNameAndPhoneList)
+    logger.Infow("read user data from file ", "file", userFile, "length", length)
+    for i, v := range idNameAndPhoneList {
+        addPerson(c, v.Name, v.Phone)
+        tools.ShowProgress("AddPersonToData", i+1, length)
+    }
+}
+
+func updateSchema(c client.Client) {
     _, err := c.AddSchema(data.Schema)
     if err != nil {
         panic(err)

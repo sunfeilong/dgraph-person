@@ -177,3 +177,35 @@ func (c *Client) DeleteByUid(uidList []string) bool {
     }
     return false
 }
+
+func (c *Client) AddFriend(uidA string, uidB string) bool {
+    logger.Infow("AddFriend start", "uidA", uidA, "uidB", uidB)
+
+    if uidA == "" || uidB == "" {
+        logger.Warnw("AddFriend uid is empty", "uidA", uidA, "uidB", uidB)
+        return false
+    }
+
+    addRelationMutationList := make([]string, 2)
+    addRelationMutationList[0] = strings.ReplaceAll(strings.ReplaceAll(data.AddFriendRelation, "$uidA", uidA), "$uidB", uidB)
+    addRelationMutationList[1] = strings.ReplaceAll(strings.ReplaceAll(data.AddFriendRelation, "$uidA", uidB), "$uidB", uidA)
+    addRelationMutationListStr := strings.Join(addRelationMutationList, "\n")
+    logger.Warnw("AddFriend addRelationMutationList", "addRelationMutationListStr", addRelationMutationListStr)
+    mu := &api.Mutation{
+        CommitNow: true,
+        SetNquads: []byte(addRelationMutationListStr),
+    }
+    txn := c.dg.NewTxn()
+    ctx := context.Background()
+    defer txn.Discard(ctx)
+    mutate, err := txn.Mutate(ctx, mu)
+    if nil != err {
+        logger.Panicw("AddFriend mutation error", "err", err)
+    }
+
+    logger.Info("AddFriend response", "response", string(mutate.Json))
+    if mutate.Json == nil {
+        return true
+    }
+    return false
+}
