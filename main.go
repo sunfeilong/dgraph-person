@@ -35,7 +35,10 @@ func loadFriend(c client.Client, friendFile string) {
     length := len(phoneNameAndPhoneList)
     logger.Infow("loadFriend load data file ", "file", friendFile, "length", length)
     for i, v := range phoneNameAndPhoneList {
-        addPerson(c, v.Name, v.Phone)
+        if !addPerson(c, v.Name, v.Phone) {
+            logger.Infow("loadFriend add person to db failed ", "name", v.Name, "phone", v.Phone)
+            continue
+        }
         friend := c.GetPersonByEdge("phone", v.Phone)
         if nil == friend {
             logger.Infow("loadFriend get friend from db, friend not exists ", "file", friendFile, "length", length)
@@ -71,20 +74,20 @@ func updateSchema(c client.Client) {
     }
 }
 
-func addPerson(c client.Client, name string, phone string) {
+func addPerson(c client.Client, name string, phone string) bool {
     if len(strings.TrimSpace(name)) == 0 {
         logger.Errorw("addPerson name is blank", "name", name)
-        return
+        return false
     }
     if !tools.IsNumber(phone) {
         logger.Panicw("addPerson phone is not a number", "phone", phone)
-        return
+        return false
     }
 
     person := c.GetPersonByEdge("phone", phone)
     if person != nil {
         logger.Infow("addPerson Person Has Exists ", "name", name, "phone", phone)
-        return
+        return true
     }
     b, err := c.AddPerson(name, phone)
     if err != nil {
@@ -93,6 +96,7 @@ func addPerson(c client.Client, name string, phone string) {
     if !b {
         logger.Panicw("addPerson error", err, err)
     }
+    return true
 }
 
 func deletePerson(c client.Client, phone string) {
