@@ -9,5 +9,5 @@ var logger = d_log.New()
 
 func ShowProgress(title string, currLength int, totalLength int) {
     progress := fmt.Sprintf("%6.2f", float64(currLength)/float64(totalLength)*100)
-    logger.Infof("%s, progress: [%s%s]", title, progress, "%")
+    logger.Infof("%s, progress: [%s%s], curr: %d, total: %d", title, progress, "%", currLength, totalLength)
 }

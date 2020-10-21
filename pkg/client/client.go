@@ -51,16 +51,13 @@ func (c *Client) AddSchema(schema string) (bool, error) {
     return true, nil
 }
 
-func (c *Client) AddPerson(name string, phone string) (bool, error) {
+func (c *Client) AddPerson(num string) (bool, error) {
 
-    logger.Infow("AddPerson start", "name", name, "phone", phone)
+    logger.Infow("AddPerson start", "num", num)
 
     addData := data.Person{
-        Uid:      "_:person",
-        Name:     name,
-        Phone:    phone,
-        DType:    []string{"Person"},
-        NodeType: "Person",
+        Uid: "_:person",
+        Num: num,
     }
     jsonData, err := json.Marshal(addData)
     if nil != err {
@@ -79,15 +76,15 @@ func (c *Client) AddPerson(name string, phone string) (bool, error) {
     response, err := txn.Mutate(ctx, mu)
 
     if err != nil {
-        logger.Errorw("AddPerson mutation error", "name", name, "phone", phone, "err", err)
+        logger.Errorw("AddPerson mutation error", "num", num, "err", err)
         return false, err
     }
 
-    logger.Infow("AddPerson mutation response", "name", name, "phone", phone, "response", string(response.Json))
+    logger.Infow("AddPerson mutation response", "num", num, "response", string(response.Json))
     if response.Json != nil {
         return false, nil
     }
-    logger.Infow("AddPerson mutation success", "name", name, "phone", phone, "response", string(response.Json))
+    logger.Infow("AddPerson mutation success", "num", num, "response", string(response.Json))
     return true, nil
 }
 
@@ -126,7 +123,7 @@ func (c *Client) GetPersonByEdge(edgeName string, value string) *data.Person {
     txn := c.dg.NewTxn()
     ctx := context.Background()
     defer txn.Discard(ctx)
-    queryStr := strings.Replace(strings.Replace(data.QueryByEdge, "$edgeName", edgeName, 1), "$phone", value, 1)
+    queryStr := strings.Replace(strings.Replace(data.QueryByEdge, "$edgeName", edgeName, 1), "$value", value, 1)
     logger.Infow("GetPersonByEdge queryStr", "edgeName", edgeName, "value", value, "queryStr", queryStr)
 
     res, err := txn.Query(ctx, queryStr)
@@ -208,4 +205,12 @@ func (c *Client) AddFriend(uidA string, uidB string) bool {
         return true
     }
     return false
+}
+
+func (c *Client) DropAll() {
+    op := api.Operation{DropAll: true}
+    ctx := context.Background()
+    if err := c.dg.Alter(ctx, &op); err != nil {
+        logger.Panicw("DropAll alter error", "err", err)
+    }
 }

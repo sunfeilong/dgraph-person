@@ -2,7 +2,7 @@ package tools
 
 import "regexp"
 
-var numberRegex = "\\d+"
+var numberRegex = "^\\d{11}$"
 
 func IsNumber(value string) bool {
 

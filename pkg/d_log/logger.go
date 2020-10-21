@@ -21,14 +21,14 @@ func init() {
 
     infoOutput := zapcore.AddSync(&lumberjack.Logger{
         Filename:   "log-info.log",
-        MaxSize:    1,
+        MaxSize:    10,
         MaxBackups: 10,
         MaxAge:     28,
     })
 
     errorOutput := zapcore.AddSync(&lumberjack.Logger{
         Filename:   "log-error.log",
-        MaxSize:    1,
+        MaxSize:    20,
         MaxBackups: 10,
         MaxAge:     28,
     })

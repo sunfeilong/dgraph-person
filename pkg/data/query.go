@@ -2,12 +2,9 @@ package data
 
 const QueryByEdge string = `
   query {
-    data(func: eq($edgeName, $phone)) {
+    data(func: eq($edgeName, $value)) {
       uid
-      name
-      phone
-      node.type
-      dgraph.type
+      num
     }
   }`
 
@@ -15,10 +12,7 @@ const QueryByUid string = `
   query {
     data(func: uid($uid)) {
       uid
-      name
-      phone
-      node.type
-      dgraph.type
+      num
     }
   }`
 

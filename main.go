@@ -12,8 +12,8 @@ import (
 var logger = d_log.New()
 
 func main() {
-    userFile := "d://user.json"
-    friendFile := "d://friends.json"
+    userFile := "d://user1.json"
+    friendFile := "d://friend1.json"
     ip := "10.0.8.36"
     port := 19080
 
@@ -22,8 +22,9 @@ func main() {
     c.Connect(ip, port)
     logger.Infow("init schema")
     updateSchema(c)
+    //c.DropAll()
     //loadPerson(c, userFile)
-    loadFriend(c, friendFile)
+    //loadFriend(c, friendFile)
 
     logger.Info("DGraph Person server end")
 }
@@ -35,6 +36,7 @@ func loadFriend(c client.Client, friendFile string) {
     length := len(phoneNameAndPhoneList)
     logger.Infow("loadFriend load data file ", "file", friendFile, "length", length)
     for i, v := range phoneNameAndPhoneList {
+        logger.Infow("loadFriend friend", "name", v.Name, "phone", v.Phone)
         if !addPerson(c, v.Name, v.Phone) {
             logger.Infow("loadFriend add person to db failed ", "name", v.Name, "phone", v.Phone)
             continue
@@ -80,7 +82,7 @@ func addPerson(c client.Client, name string, phone string) bool {
         return false
     }
     if !tools.IsNumber(phone) {
-        logger.Panicw("addPerson phone is not a number", "phone", phone)
+        logger.Errorw("addPerson phone is not a number", "phone", phone)
         return false
     }
 
