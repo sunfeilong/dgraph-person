@@ -8,6 +8,7 @@ require (
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/stretchr/testify v1.6.1
+	github.com/willf/bitset v1.1.11 // indirect
 	go.uber.org/zap v1.16.0
 	golang.org/x/net v0.0.0-20200923182212-328152dc79b1 // indirect
 	golang.org/x/sys v0.0.0-20200923182605-d9f96fdee20d // indirect

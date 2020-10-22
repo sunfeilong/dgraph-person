@@ -69,7 +69,7 @@ func getFriend(num int, maxFriendCount int, totalCount int) *[]int {
             result[index] = friend
             index++
             friendsMap[friend] = true
-            if len(result) == friendCount {
+            if index == friendCount {
                 for _, v := range result {
                     friendsMap[v] = false
                 }

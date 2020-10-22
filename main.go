@@ -21,9 +21,9 @@ func main() {
     c := client.Client{}
     c.Connect(ip, port)
 
-    //updateSchema(c)
+    updateSchema(c)
     //dropAll(c)
-    generateData(10000000, 200, dataFile)
+    //generateData(1000000, 200, dataFile)
 
     logger.Info("DGraph Person server end")
 }
