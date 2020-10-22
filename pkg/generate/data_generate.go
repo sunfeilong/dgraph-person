@@ -3,6 +3,7 @@ package generate
 import (
     "bytes"
     "fmt"
+    "github.com/bittygarden/lilac/pkg/io_tool"
     "github.com/xiaotian/dgraph-person/pkg/d_log"
     "github.com/xiaotian/dgraph-person/pkg/tools"
     "math/rand"
@@ -91,13 +92,8 @@ func AppendToFile(data *bytes.Buffer, file *os.File) {
     logger.Infow("append to file.", "length", n)
 }
 
-func FileExist(path string) bool {
-    _, err := os.Lstat(path)
-    return !os.IsNotExist(err)
-}
-
 func CreateFileIfNotExists(filePath string) {
-    if !FileExist(filePath) {
+    if !io_tool.FileExists(filePath) {
         logger.Infow("file not exists, create file.", "file", filePath)
         file, err := os.Create(filePath)
         if err != nil {
@@ -107,7 +103,7 @@ func CreateFileIfNotExists(filePath string) {
     }
 }
 func DeleteFileIfExists(filePath string) {
-    if FileExist(filePath) {
+    if io_tool.FileExists(filePath) {
         logger.Infow("file exists, delete file.", "file", filePath)
         err := os.Remove(filePath)
         if err != nil {

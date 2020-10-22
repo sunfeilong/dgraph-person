@@ -1,6 +1,8 @@
 package generate
 
 import (
+    "bytes"
+    "github.com/bittygarden/lilac/pkg/io_tool"
     "github.com/stretchr/testify/assert"
     "os"
     "strconv"
@@ -10,7 +12,7 @@ import (
 func TestCreateFileIfNotExists(t *testing.T) {
     filePath := "d://test.txt"
     CreateFileIfNotExists(filePath)
-    assert.True(t, FileExist(filePath), "fail")
+    assert.True(t, io_tool.FileExists(filePath), "fail")
 }
 
 func TestAppendToFile(t *testing.T) {
@@ -21,6 +23,8 @@ func TestAppendToFile(t *testing.T) {
 
     assert.Nil(t, err, "打开文件异常", "err", err)
     for i := 0; i < count; i++ {
-        AppendToFile(strconv.Itoa(i)+"\n", file)
+        buffer := bytes.Buffer{}
+        buffer.WriteString(strconv.Itoa(i) + "\n")
+        AppendToFile(&buffer, file)
     }
 }

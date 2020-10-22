@@ -3,7 +3,7 @@ module github.com/xiaotian/dgraph-person
 go 1.13
 
 require (
-	github.com/bittygarden/lilac v1.1.1
+	github.com/bittygarden/lilac v1.1.3
 	github.com/dgraph-io/dgo/v200 v200.0.0-20200916081436-9ff368ad829a
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
