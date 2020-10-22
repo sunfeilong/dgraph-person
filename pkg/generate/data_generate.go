@@ -14,6 +14,8 @@ const APPEND_BARRIER int = 1024 * 1024 * 20 / 8
 
 var logger = d_log.New()
 
+var friendsMap = make(map[int]bool)
+
 func ProductData(totalCount int, maxFriendCount int, filePath string) {
     DeleteFileIfExists(filePath)
     CreateFileIfNotExists(filePath)
@@ -54,12 +56,27 @@ func getFriend(num int, maxFriendCount int, totalCount int) *[]int {
         return &[]int{}
     }
     rand.Seed(int64(num))
-    friendCount := rand.Intn(maxFriendCount + 1)
+    friendCount := rand.Intn(maxFriendCount) + 1
     result := make([]int, friendCount)
-    for i := 0; i < friendCount; i++ {
-        result[i] = rand.Intn(totalCount + 1)
+    for ; ; {
+        friend := 0
+        index := 0
+        for ; ; {
+            friend = rand.Intn(totalCount) + 1
+            if friendsMap[friend] {
+                continue
+            }
+            result[index] = friend
+            index++
+            friendsMap[friend] = true
+            if len(result) == friendCount {
+                for _, v := range result {
+                    friendsMap[v] = false
+                }
+                return &result
+            }
+        }
     }
-    return &result
 }
 
 func needAdd(data *bytes.Buffer) bool {

@@ -13,7 +13,7 @@ import (
 var logger = d_log.New()
 
 func main() {
-    dataFile := "d://dgraph-data1.rdf"
+    dataFile := "d://dgraph-data.rdf"
     ip := "10.0.8.36"
     port := 19080
 
