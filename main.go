@@ -4,6 +4,7 @@ import (
     "github.com/xiaotian/dgraph-person/pkg/client"
     "github.com/xiaotian/dgraph-person/pkg/d_log"
     "github.com/xiaotian/dgraph-person/pkg/data"
+    "github.com/xiaotian/dgraph-person/pkg/generate"
     "github.com/xiaotian/dgraph-person/pkg/reader"
     "github.com/xiaotian/dgraph-person/pkg/tools"
     "strings"
@@ -12,21 +13,28 @@ import (
 var logger = d_log.New()
 
 func main() {
-    userFile := "d://user1.json"
-    friendFile := "d://friend1.json"
+    dataFile := "d://dgraph-data1.rdf"
     ip := "10.0.8.36"
     port := 19080
 
-    logger.Info("DGraph Person server start", "ip", ip, "port", port, "userFile", userFile, "friendFile", friendFile)
+    logger.Info("DGraph Person server start", "ip", ip, "port", port, "dataFile", dataFile)
     c := client.Client{}
     c.Connect(ip, port)
-    logger.Infow("init schema")
-    updateSchema(c)
-    //c.DropAll()
-    //loadPerson(c, userFile)
-    //loadFriend(c, friendFile)
+
+    //updateSchema(c)
+    //dropAll(c)
+    generateData(10000000, 200, dataFile)
 
     logger.Info("DGraph Person server end")
+}
+
+func generateData(totalCount int, maxFriendCount int, filePath string) {
+    generate.ProductData(totalCount, maxFriendCount, filePath)
+}
+
+func dropAll(c client.Client) {
+    logger.Infow("drop all data")
+    c.DropAll()
 }
 
 func loadFriend(c client.Client, friendFile string) {
@@ -36,17 +44,17 @@ func loadFriend(c client.Client, friendFile string) {
     length := len(phoneNameAndPhoneList)
     logger.Infow("loadFriend load data file ", "file", friendFile, "length", length)
     for i, v := range phoneNameAndPhoneList {
-        logger.Infow("loadFriend friend", "name", v.Name, "phone", v.Phone)
-        if !addPerson(c, v.Name, v.Phone) {
-            logger.Infow("loadFriend add person to db failed ", "name", v.Name, "phone", v.Phone)
+        logger.Infow("loadFriend friend", "num", v.UserNum, "friendNum", v.FriendNum)
+        if !addPerson(c, v.FriendNum) {
+            logger.Infow("loadFriend add person to db failed ", "num", v.UserNum, "friendNum", v.FriendNum)
             continue
         }
-        friend := c.GetPersonByEdge("phone", v.Phone)
+        friend := c.GetPersonByEdge("num", v.FriendNum)
         if nil == friend {
             logger.Infow("loadFriend get friend from db, friend not exists ", "file", friendFile, "length", length)
             continue
         }
-        person := c.GetPersonByEdge("phone", v.UserPhone)
+        person := c.GetPersonByEdge("num", v.UserNum)
         if nil == person {
             logger.Infow("loadFriend from file get person from db, person not exists ", "file", friendFile, "length", length)
             continue
@@ -64,34 +72,35 @@ func loadPerson(c client.Client, userFile string) {
     length := len(idNameAndPhoneList)
     logger.Infow("read user data from file ", "file", userFile, "length", length)
     for i, v := range idNameAndPhoneList {
-        addPerson(c, v.Name, v.Phone)
+        addPerson(c, v.Num)
         tools.ShowProgress("AddPersonToData", i+1, length)
     }
 }
 
 func updateSchema(c client.Client) {
+    logger.Infow("init schema")
     _, err := c.AddSchema(data.Schema)
     if err != nil {
         panic(err)
     }
 }
 
-func addPerson(c client.Client, name string, phone string) bool {
-    if len(strings.TrimSpace(name)) == 0 {
-        logger.Errorw("addPerson name is blank", "name", name)
+func addPerson(c client.Client, num string) bool {
+    if len(strings.TrimSpace(num)) == 0 {
+        logger.Errorw("addPerson name is blank", "num", num)
         return false
     }
-    if !tools.IsNumber(phone) {
-        logger.Errorw("addPerson phone is not a number", "phone", phone)
+    if !tools.IsNumber(num) {
+        logger.Errorw("addPerson num is not a number", "num", num)
         return false
     }
 
-    person := c.GetPersonByEdge("phone", phone)
+    person := c.GetPersonByEdge("num", num)
     if person != nil {
-        logger.Infow("addPerson Person Has Exists ", "name", name, "phone", phone)
+        logger.Infow("addPerson Person Has Exists ", "num", num)
         return true
     }
-    b, err := c.AddPerson(name, phone)
+    b, err := c.AddPerson(num)
     if err != nil {
         logger.Panicw("addPerson error", err, err)
     }
@@ -101,15 +110,15 @@ func addPerson(c client.Client, name string, phone string) bool {
     return true
 }
 
-func deletePerson(c client.Client, phone string) {
-    if len(strings.TrimSpace(phone)) == 0 {
-        logger.Errorw("deletePerson phone is blank", "phone", phone)
+func deletePerson(c client.Client, num string) {
+    if len(strings.TrimSpace(num)) == 0 {
+        logger.Errorw("deletePerson num is blank", "num", num)
         return
     }
 
-    person := c.GetPersonByEdge("phone", phone)
+    person := c.GetPersonByEdge("num", num)
     if person == nil {
-        logger.Infow("deletePerson Person Not Exists ", "phone", phone)
+        logger.Infow("deletePerson Person Not Exists ", "num", num)
         return
     }
     b := c.DeleteByUid([]string{person.Uid})
@@ -118,14 +127,14 @@ func deletePerson(c client.Client, phone string) {
     }
 }
 
-func deletePersonList(c client.Client, phoneList []string) {
-    if len(phoneList) == 0 {
-        logger.Errorw("deletePerson phoneList is blank", "phoneList", phoneList)
+func deletePersonList(c client.Client, numList []string) {
+    if len(numList) == 0 {
+        logger.Errorw("deletePerson numList is blank", "numList", numList)
         return
     }
 
-    uidList := make([]string, len(phoneList))
-    for i, v := range phoneList {
+    uidList := make([]string, len(numList))
+    for i, v := range numList {
         person := c.GetPersonByEdge("phone", v)
         if person == nil {
             continue
@@ -139,16 +148,15 @@ func deletePersonList(c client.Client, phoneList []string) {
     }
 }
 
-func getPhoneList(idNamePhone []reader.IdNameAndPhone) []string {
-    if len(idNamePhone) == 0 {
+func getNumList(numList []reader.Num) []string {
+    if len(numList) == 0 {
         return make([]string, 0)
     }
 
-    phones := make([]string, len(idNamePhone))
+    nums := make([]string, len(numList))
 
-    for i, v := range idNamePhone {
-        phones[i] = v.Phone
+    for i, v := range numList {
+        nums[i] = v.Num
     }
-
-    return phones
+    return nums
 }

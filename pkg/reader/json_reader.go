@@ -11,18 +11,16 @@ var logger = d_log.New()
 type JsonPersonReader struct {
 }
 
-type IdNameAndPhone struct {
-    Name  string `json:"name"`
-    Phone string `json:"phone"`
+type Num struct {
+    Num  string `json:"num"`
 }
 
-type PhoneNameAndPhone struct {
-    UserPhone string `json:"userPhone"`
-    Name      string `json:"name"`
-    Phone     string `json:"phone"`
+type NumAndFriendNum struct {
+    UserNum string `json:"userNum"`
+    FriendNum     string `json:"friendNum"`
 }
 
-func (read JsonPersonReader) ReadPersonFromFile(filePath string) []IdNameAndPhone {
+func (read JsonPersonReader) ReadPersonFromFile(filePath string) []Num {
     logger.Infow("JsonPersonReader ReadPersonFromFile ", "filePath", filePath)
 
     dataBytes, err := ioutil.ReadFile(filePath)
@@ -30,7 +28,7 @@ func (read JsonPersonReader) ReadPersonFromFile(filePath string) []IdNameAndPhon
         logger.Panicw("JsonPersonReader ReadPersonFromFile error", "filePath", filePath, "err", err)
     }
 
-    result := []IdNameAndPhone{}
+    result := []Num{}
     err = json.Unmarshal(dataBytes, &result)
     if err != nil {
         logger.Panicw("JsonPersonReader ReadPersonFromFile Unmarshal error", "filePath", filePath, "err", err)
@@ -39,7 +37,7 @@ func (read JsonPersonReader) ReadPersonFromFile(filePath string) []IdNameAndPhon
     return result
 }
 
-func (read JsonPersonReader) ReadFriendFromFile(filePath string) []PhoneNameAndPhone {
+func (read JsonPersonReader) ReadFriendFromFile(filePath string) []NumAndFriendNum {
     logger.Infow("JsonPersonReader ReadFriendFromFile ", "filePath", filePath)
 
     dataBytes, err := ioutil.ReadFile(filePath)
@@ -47,7 +45,7 @@ func (read JsonPersonReader) ReadFriendFromFile(filePath string) []PhoneNameAndP
         logger.Panicw("JsonPersonReader ReadFriendFromFile error", "filePath", filePath, "err", err)
     }
 
-    result := []PhoneNameAndPhone{}
+    result := []NumAndFriendNum{}
     err = json.Unmarshal(dataBytes, &result)
     if err != nil {
         logger.Panicw("JsonPersonReader ReadFriendFromFile Unmarshal error", "filePath", filePath, "err", err)
