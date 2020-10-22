@@ -1,6 +1,7 @@
 package generate
 
 import (
+    "bytes"
     "fmt"
     "github.com/xiaotian/dgraph-person/pkg/d_log"
     "github.com/xiaotian/dgraph-person/pkg/tools"
@@ -23,29 +24,29 @@ func ProductData(totalCount int, maxFriendCount int, filePath string) {
     }
     defer file.Close()
 
-    data := ""
+    data := bytes.Buffer{}
     for i := 1; i <= totalCount; i++ {
-        data = data + fmt.Sprintf("<%d> <num> \"%s\" .\n", i, strconv.Itoa(i))
-        if needAdd(data) {
-            AppendToFile(data, file)
+        data.WriteString(fmt.Sprintf("<%d> <num> \"%s\" .\n", i, strconv.Itoa(i)))
+        if needAdd(&data) {
+            AppendToFile(&data, file)
             tools.ShowProgress("Generate person", i, totalCount)
-            data = ""
+            data.Reset()
         }
     }
 
     for i := 1; i <= totalCount; i++ {
         friends := getFriend(i, maxFriendCount, totalCount)
         for _, v := range *friends {
-            data = data + fmt.Sprintf("<%d> <friend> <%d> .\n", i, v)
-            data = data + fmt.Sprintf("<%d> <friend> <%d> .\n", v, i)
-            if needAdd(data) {
-                AppendToFile(data, file)
+            data.WriteString(fmt.Sprintf("<%d> <friend> <%d> .\n", i, v))
+            data.WriteString(fmt.Sprintf("<%d> <friend> <%d> .\n", v, i))
+            if needAdd(&data) {
+                AppendToFile(&data, file)
                 tools.ShowProgress("Generate person friend", i, totalCount)
-                data = ""
+                data.Reset()
             }
         }
     }
-    AppendToFile(data, file)
+    AppendToFile(&data, file)
 }
 
 func getFriend(num int, maxFriendCount int, totalCount int) *[]int {
@@ -61,12 +62,12 @@ func getFriend(num int, maxFriendCount int, totalCount int) *[]int {
     return &result
 }
 
-func needAdd(data string) bool {
-    return len(data) >= APPEND_BARRIER
+func needAdd(data *bytes.Buffer) bool {
+    return data.Len() >= APPEND_BARRIER
 }
 
-func AppendToFile(data string, file *os.File) {
-    n, err := file.Write([]byte(data))
+func AppendToFile(data *bytes.Buffer, file *os.File) {
+    n, err := file.Write(data.Bytes())
     if err != nil {
         logger.Errorw("append to file Exception", "err", err)
     }
