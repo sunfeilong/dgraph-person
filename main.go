@@ -1,6 +1,8 @@
 package main
 
 import (
+    "flag"
+    "fmt"
     "github.com/xiaotian/dgraph-person/pkg/client"
     "github.com/xiaotian/dgraph-person/pkg/d_log"
     "github.com/xiaotian/dgraph-person/pkg/data"
@@ -13,19 +15,77 @@ import (
 var logger = d_log.New()
 
 func main() {
-    dataFile := "d://dgraph-data.rdf"
-    ip := "10.0.8.36"
-    port := 19080
 
-    logger.Info("DGraph Person server start", "ip", ip, "port", port, "dataFile", dataFile)
-    c := client.Client{}
-    c.Connect(ip, port)
+    command := flag.String("command", "", "run command \n[generate] generate data\n[clean] clean all data in dgraph\n[update] update schema")
+    host := flag.String("host", "", "[clean/update] dgraph host")
+    port := flag.Int("port", 0, "[clean/update] dgraph port")
+    filePath := flag.String("filePath", "", "[generate] save generate data file path")
+    count := flag.Int("count", 1000000, "[generate] person count")
+    maxFriendCount := flag.Int("maxFriendCount", 200, "[generate] person max friend count")
 
-    updateSchema(c)
-    //dropAll(c)
-    //generateData(1000000, 200, dataFile)
+    flag.Parse()
 
-    logger.Info("DGraph Person server end")
+    if command == nil || *command == "" {
+        fmt.Println("command must in [generate clean update]")
+    } else if *command == "generate" {
+        if checkIsEmpty("count", host) {
+            return
+        }
+        if *count <= 0 {
+            fmt.Println("count must grater than 0", "count", *count)
+        }
+        if *maxFriendCount <= 0 {
+            fmt.Println("count must grater than 0", "maxFriendCount", *maxFriendCount)
+        }
+        if * maxFriendCount >= *count {
+            fmt.Println("maxFriendCount must less than count", "count", *count, "maxFriendCount", maxFriendCount)
+        }
+        if checkIsEmpty("maxFriendCount", port) {
+            return
+        }
+        if checkIsEmpty("filePath", filePath) {
+            return
+        }
+        generateData(*count, *maxFriendCount, *filePath)
+    } else if *command == "clean" {
+        fmt.Printf("clean all dgraph data start. hosy:%s, port:%d\n", *host, *port)
+        if checkIsEmpty("host", host) {
+            return
+        }
+        if checkIsEmpty("port", port) {
+            return
+        }
+        if *host == "" || *port == 0 {
+            fmt.Printf("host and port must exists. host:%s, port:%d\n", *host, *port)
+            return
+        }
+        c := client.Client{}
+        c.Connect(*host, *port)
+        dropAll(c)
+        fmt.Printf("clean all dgraph data end. host:%s, port:%d\n", *host, *port)
+    } else if *command == "update" {
+        fmt.Println("update schema start.")
+        if checkIsEmpty("host", host) {
+            return
+        }
+        if checkIsEmpty("port", port) {
+            return
+        }
+        c := client.Client{}
+        c.Connect(*host, *port)
+        updateSchema(c)
+        fmt.Println("update schema success.")
+    } else {
+        fmt.Println("command must in [generate/clean/update]", "\nyou input command: ", *command)
+    }
+}
+
+func checkIsEmpty(name string, value interface{}) bool {
+    if value == nil {
+        fmt.Printf("%s must not nil.\n", name)
+        return true
+    }
+    return false
 }
 
 func generateData(totalCount int, maxFriendCount int, filePath string) {
